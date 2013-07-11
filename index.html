@@ -1,0 +1,1146 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    
+    <script type="text/javascript" src="./lib/d3.v3.min.js"></script>
+    <script type="text/javascript" src="./lib/jquery.js"></script>
+    <script type="text/javascript" src="./lib/jquery-ui.js"></script>
+    <script type="text/javascript" src="./lib/crossfilter.v1.js"></script>
+    <script type="text/javascript" src="./lib/sankey.js"></script>
+    <script type="text/javascript" src="./lib/select2.min.js"></script>    
+    <link type="text/css" rel="stylesheet" href="./style/select2.css" />
+    <link type="text/css" rel="stylesheet" href="./style/colorbrewer.css" />
+    <link type="text/css" rel="stylesheet" href="./style/jquery-ui.css" />
+    <title>A study in toxic releases</title>
+    <style type="text/css">
+        #container
+        {
+            margin: auto;
+            width: 760px;
+            background: #ffffff;
+        }
+        
+        #header
+        {
+            background: #DDDDDD;
+            text-align: right;
+        }
+        #search-header
+        {
+            background: #DDDDDD;
+        }
+        
+        #leftBar
+        {
+            position: relative;
+            float: left;
+            width: 355px;
+            background: #EBEBEB;
+            height: 250px;
+            text-align: right;
+            border: 1px solid #000;
+            -webkit-box-sizing: border-box; /* Safari/Chrome, other WebKit */
+            -moz-box-sizing: border-box;    /* Firefox, other Gecko */
+            box-sizing: border-box;         /* Opera/IE 8+ */
+
+        }
+        #leftBar p {
+            position: absolute;
+            bottom: 0;
+            right:0px;
+        }
+        
+        #content
+        {
+            float: left;
+            width: 756px;
+            background-color: #cdcde6;
+            height: 259px;
+        }
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
+        #rightBar
+        {
+            position:relative;
+            float: right;
+            width: 394px;
+            background: #EBEBEB;
+            height: 250px;
+            text-align: right;
+            border: 1px solid #000;
+            -webkit-box-sizing: border-box; /* Safari/Chrome, other WebKit */
+            -moz-box-sizing: border-box;    /* Firefox, other Gecko */
+            box-sizing: border-box;         /* Opera/IE 8+ */
+        }
+        #rightBar p {
+            position: absolute;
+            bottom: 0;
+            right:0px;
+        }
+        #sub-footer
+        {
+            position:relative;
+            clear: both;
+            background: #DDDDDD;
+            height: 200px;
+        }
+        #sub-footer p {
+            position: absolute;
+            bottom: 0;
+            right:0px;
+        }
+
+        #footer
+        {
+            position:relative;
+            clear: both;
+            background: #DDDDDD;
+            height: 75px;
+        }
+
+        /* for text elements over the circles */
+        #footer text {
+            font: 15px sans-serif;
+            pointer-events: none;
+        }
+        
+        #footer y {
+            position:absolute;
+            right:0px;
+            top: 0;
+        }
+        #help {
+            height:500px;
+            width:500px;
+        }
+        #help text {
+            font: 9px sans-serif;
+        }
+        .hidden
+        {
+            display:none;
+        }
+        /* sankey */
+        .node rect {
+            cursor: move;
+            fill-opacity: .9;
+            shape-rendering: crispEdges;
+        }
+ 
+        .node text {
+            pointer-events: none;
+            text-shadow: 0 1px 0 #fff;
+        }
+ 
+        .link {
+            fill: none;
+            stroke: #000;
+            stroke-opacity: .2;
+        }
+ 
+ 
+        .cycleLink {
+            fill: none;
+            stroke: #300;
+            stroke-opacity: .2;
+        }
+ 
+        .cycleLink:hover {
+            stroke-opacity: .5;
+        }
+ 
+        .link:hover {
+            stroke-opacity: .5;
+        }
+
+        /* sunburst */
+        path {
+            stroke: #fff;
+            fill-rule: evenodd;
+        }
+        path:hover {
+            stroke-opacity: .5;
+        }
+        
+        /* brush */
+        .brush .extent {
+            fill-opacity: .3;
+            stroke: #fff;
+            shape-rendering: crispEdges;
+        }
+                
+        /* header text for each section */
+        .heading {
+            cursor: pointer;
+            text-anchor: middle;
+            font-size: 15pt;
+            text-decoration: underline;
+            fill:blue;
+
+        }
+        .filterText {
+            cursor: hand;
+            text-anchor: end;
+            font-size: 10pt;
+            text-align: right;
+        }
+
+        /* progressbar for making the user wait */
+        /*#progressbarDlg .ui-progressbar-value {
+            background-color: #ccc;
+        }*/
+        .no-close-button .ui-dialog-titlebar-close {
+            display: none;
+        }
+        .no-title-bar .ui-dialog-title {
+            display: none;
+        }
+        
+        </style>
+    <h2 align="center">A study in toxic releases</h2>
+</head>
+<body>
+
+    <div id="container">
+        <div id="help" class="hidden" title="Help">Help test!</div>
+        <div id="progressbarDlg">Please wait ...</div>
+        
+        <div id="intro">
+            This is an attempt to simplify and consolidate, a visual represention of more than twenty years of data from the <a href="http://www.epa.gov/tri/triprogram/whatis.htm">TRI</a> program. This represention can be used to slice and dice the data to answer basic questions of interest. Some questions we asked during the design were, total amount of pollutants being released, how much percent of it is carcinogenic? Which chemical is released at which facility and how much? How much is treated, or recycled? What is it being released into, river or air? Acknowledgements: This work is directly based upon the beautiful examples of d3 by <a href="http://bost.ocks.org/mike/">Mike Bostock</a>. The speed of the data filter is attributed to <a href="http://square.github.io/crossfilter/">CrossFilter</a>. Igor Vaynberg and his <a href="http://ivaynberg.github.io/select2/">examples</a> for the selection box. The data is from this web <a href="http://www.data.gov">site</a>.
+        </div>
+    
+        <!-- -->
+        <div id="footer"><y id="yearFilterText">Current Year:1987</y></div>
+        
+        <!-- -->
+        <div id="search-header">
+            <input type="hidden" id="drpSearch" style="width:760px" tabindex="-1" class="select2-offscreen">
+        </div>
+        
+        <!-- -->
+        <div id="sub-footer">
+            <p id="mediumFilter">
+                <a id="link" title="Reset Filter" href="javascript:resetFilter(null,null,null,1)">Filter:</a>
+                <text id="mediumFilterText">None</text>
+            </p>
+        </div>
+        
+        <!-- -->
+        <div id="content">
+            <div id="leftBar">
+                <p id="mapFilter">
+                    <a id="link" title="Reset Filter" href="javascript:resetFilter(1,null,null,null)">Filter:</a>
+                    <text id="mapFilterText">None</text>
+                </p>
+            </div>
+            <div id="rightBar">
+                <p id="sunburstFilter">
+                    <a id="sunburstFilterLink" title="Reset Filter" href="javascript:resetFilter(null,1,null,null)">Filter:</a>
+                    <text id="sunburstFilterText">None</text>
+                </p>
+            </div>
+        </div>
+        
+    </div>
+
+    <script type="text/javascript">
+        
+        function showHelp(whom){
+            var helpText = "All amounts are shown in the form of giga(10^12), mega(10^6) or kilo(10^3) pounds.<br/>";
+
+            if(whom===1){ // medium release
+                helpText = helpText + "Chemicals are the by-products of any process and can be released into the environment through different ways.";
+                helpText = helpText + "This graphic tries to capture the different mediums into which chemicals are released, both offsite and onsite.";
+                helpText = helpText + "<br/>Air: Chemicals released through the air medium. Chimneys, or dispersion as a result of handling.";
+                helpText = helpText + "<br/>Water: Chemicals released through the water medium. Water treatment plants.";
+                helpText = helpText + "<br/>Landfills: Chemicals that are deemed safe to be sent off to landfills.";
+                helpText = helpText + "<br/>Surface: Chemicals that are released either on surface of water or land in the form of leaks or spills.";
+                helpText = helpText + "<br/>Underground: Chemicals that are injected into underground wells.";
+                helpText = helpText + "<br/>Land treatment: Chemicals that are applied to or incorporated into soil.";
+                helpText = helpText + "<br/>Recycle: Chemicals that are retrieved back from the waste and reused.";
+                helpText = helpText + "<br/>Recovery: Chemicals that left the site for energy recovery as they have a combustible value.";
+                helpText = helpText + "<br/>Treatment: Chemicals that are treated before releasing. An example of waste water plants.";
+                helpText = helpText + "<br/>The amount of chemicals are represented in the size and color of the rectangular node.</br>";
+                helpText = helpText + "Hover around the node to get more information.";
+                helpText = helpText + "Click the gray links to apply it as a filter.";
+                
+            }
+            if(whom===2){ // states
+                helpText = helpText + "This spatial graphic shows the distribution of the chemicals over the United States.";
+                helpText = helpText + "The color is corelated to the weight of the chemicals released.<br/>";
+                helpText = helpText + "Hover over the state to get more information.";
+                helpText = helpText + "On clicking the state, a filter is applied to the current dataset, with the respective state.";
+            }
+            
+            if(whom===3){
+                helpText = helpText + "This graphic is called a sunburst, and shows relations between chemicals and facilities.";
+                helpText = helpText + "The inner ring shows the chemicals stacked in order of the weight of the releases.";
+                helpText = helpText + "The outer ring corresponds to the chemicals and shows the facility where that particular";
+                helpText = helpText + "chemical was released. So they are both dependant on one other.<br/>";
+                helpText = helpText + "To search for chemicals or facilities textually, use the search textbox in the top of the screen.";
+                helpText = helpText + "Hover over the elements, to get more information.";
+                helpText = helpText + "Click on the element to apply it as a filter";
+
+            }
+            helpText = helpText + "To remove a filter, click on the Filter link";
+            
+            $("#help").html(helpText);
+            $("#help").removeClass("hidden");
+            $("#help").dialog({modal:false, height:400, width:700});
+            //$("#help").addClass("hidden");
+            
+        }
+        // readable values for long numbers
+        function humanReadable(bytes) {
+            var s = ['lbs', 'Klbs', 'Mlbs', 'Glbs', 'Tlbs', 'Plbs'];
+            var e = bytes=== 0 ? 0 : Math.floor(Math.log(bytes) / Math.log(1024));
+            return (bytes / Math.pow(1024, Math.floor(e))).toFixed(2) + " " + s[e];
+        }
+        // calculate the text metrics for the heading title
+        function calcDummyTitle(text, className) {
+            if(!text || text.length===0){
+                return {height:0, width:0};
+            }
+            var container = d3.select("body").append("svg").attr("class", className);
+            container.append("text").attr({x:-1000, y:-1000}).text(text);
+            var bbox = container.node().getBBox();
+            container.remove();
+            
+            return {height: bbox.height, width:bbox.width};
+        }
+        ////////////////////////////////////////////////////
+
+
+//-- LEGEND --
+//-- carcinogen : c
+//-- Total releases : t
+//-- Air releases : a
+//-- water releases : w
+//-- ground releases : g
+//-- Land fills : f
+//-- Land treatment : r
+//-- Surface impoundment : u
+//-- Chemical : h
+//-- state : s
+//-- Facility : y
+//-- recovery : v
+//-- recycle : e
+//-- treatment : m
+
+        var lkpSt = null;
+        var lkpChm = null;
+        var lkpFcy = null;
+        var formatPerc = d3.format(".00%");
+        
+        function initLkps() {
+            // load data
+            d3.json("./data/lkpSt.json", function (st) {
+                d3.json("./data/lkpChm.json", function (chm) {
+                    d3.json("./data/lkpFcy.json", function (fcy) {
+                            
+                            lkpSt = st;
+                            lkpChm = chm;
+                            lkpFcy = fcy;
+                                
+                            initSearchBox();
+                                
+                    }); // fcy
+                }); // chm
+            }); // state
+        }
+
+        function initSearchBox(){
+
+            var lkpSrch = [];
+            lkpSt.forEach(function(d){
+                          lkpSrch.push({id:d.id, desc:d.desc, typ:"s"});
+                           });
+            lkpChm.forEach(function(d){
+                           lkpSrch.push({id:d.id, desc:d.desc, typ:"c"});
+                           });
+            lkpFcy.forEach(function(d){
+                           lkpSrch.push({id:d.id, desc:d.desc, typ:"f"});
+                           });
+                           
+            
+            var srchBox = $("#drpSearch");
+            $(srchBox).select2({
+                               data:{ results: lkpSrch, text: 'desc' },
+                               minimumInputLength: 3,
+                               multiple:false,
+                               formatSelection: function format(d){
+                                return d.desc;},
+                               formatResult: function format(d) {
+                               if(d.typ === "c") {return d.desc + "-- Chemical";}
+                               if(d.typ === "f") {return d.desc + "-- Facility";}
+                               if(d.typ === "s") {return d.desc + "-- State";}
+                                },
+                               placeholder: "Search for State, Chemicals or Facilities ...",
+                               allowClear: true
+                               });
+            $(srchBox).on("select2-selecting", function(d){
+                if(d.object.typ === "c") {filterData(null, d.object.id, null, null);}
+                if(d.object.typ === "s") {filterData(d.object.id, null, null, null);}
+                if(d.object.typ === "f") {filterData(null, null, d.object.id, null);}
+            });
+
+        }
+        
+        var prg = false;
+        function showProgress(){
+            if(prg === true){return;}
+            prg = true;
+            $("#progressbarDlg").removeClass("hidden");
+            $("#progressbarDlg").dialog({modal:true, dialogClass:"no-close-button no-title-bar"});
+            //var progressbar = $( "#progressbar" );
+            //progressbar.progressbar({value: false});
+            //var progressbarValue = progressbar.find( ".ui-progressbar-value" );
+            //progressbar.progressbar( "option", "value", false );
+
+        }
+        function hideProgress(){
+            $("#progressbarDlg").dialog("close");
+            $("#progressbarDlg").addClass("hidden");
+            prg = false;
+        }
+        showProgress();
+        initLkps();
+        main(null);
+        visualCirc();
+        //hideProgress();
+        
+        
+        // --------------------------------------------------------------------------------------------------------
+        var toxin, all, state, states, chemical, chemicals, facility, facilities;
+        var air, water, landf, uground, landt, surf, recvr, recyl, trtmt;
+        function main(argv) {
+
+            showProgress();
+            
+            if(argv===null)
+                argv = "./data/01.json";
+            
+            toxin = all = state = states = chemical = chemicals = facility = facilities = null;
+            air = water = landf = uground = landt = surf = recvr = recyl = trtmt = null;
+
+            d3.json(argv, function (toxins) {
+
+                // Create the crossfilter for the relevant dimensions and groups.
+                toxin = crossfilter(toxins),
+                    all = toxin.groupAll(),
+                    state = toxin.dimension(function (d) { return (d.s); }),
+                    states = state.group(),
+                    chemical = toxin.dimension(function (d) { return d.h; }),
+                    chemicals = chemical.group(),
+                    facility = toxin.dimension(function (d) { return d.y; }),
+                    facilities = facility.group(),
+                    air = toxin.dimension(function (d) {return d.a;}),
+                    water = toxin.dimension(function (d) {return d.w;}),
+                    landf = toxin.dimension(function (d) {return d.f;}),
+                    uground = toxin.dimension(function (d) {return d.g;}),
+                    landt = toxin.dimension(function (d) {return d.a;}),
+                    surf = toxin.dimension(function (d) {return d.u;}),
+                    recvr = toxin.dimension(function (d) {return d.v;}),
+                    recyl = toxin.dimension(function (d) {return d.e;}),
+                    trtmt = toxin.dimension(function (d) {return d.m;});
+                    
+                    //help("#leftBar");
+                    
+                visualMap();
+                visualSankey();
+                visualSunburst();
+                    
+                hideProgress();
+            });
+        }
+
+        function carcinogenData(){
+            // get carcinogens
+            return states.reduce(
+                                     function ra(p, v) {
+                                     if(v.c === 1) { p.carc = p.carc + v.t; }
+                                     p.tots = p.tots + v.t;
+                                     p.perc = p.tots === 0 ? 0 : (p.carc / p.tots) * 100;
+                                     return p; },
+                                     function rr(p, v) {},
+                                     function ri() { return {carc:0, tots:0, perc:0}; }).top(Infinity);
+            
+        }
+        function chemicalData(){
+            // get chemicals
+            chemData = chemicals.reduce(
+                                        function ra(p, v) {
+                                        p.name = v.h;
+                                        p.size = p.size + v.t;
+                                        if(v.c === 1) {p.carc = p.carc + v.t;}
+                                        p.children.push({name:v.y, size:v.t, carc:v.c === 1? v.t:0});
+                                        return p;
+                                        },
+                                        function rr(p, v) { },
+                                        function ri() {
+                                        return { name:0, size:0, carc:0, children:[] }; });
+            // to flare format
+            var chemArray = [];
+            chemData.top(Infinity).forEach(function (d) {
+                                           chemArray.push({name:d.value.name, size:d.value.size, carc:d.value.carc, children:d.value.children});
+                                           });
+            return {name:"All", children:chemArray};
+
+        }
+        function mediumData(){
+            var mediumData = all.reduce(
+             function ra(p, v) {
+             p.a += v.a; p.w += v.w; p.g += v.g; p.f += v.f; p.r += v.r; p.u += v.u;
+             p.v += v.v; p.e += v.e; p.m += v.m;
+             return p;
+             },
+             function rr(p, v) {},
+             function ri() {
+             return { a: 0, w: 0, g: 0, f: 0, r: 0, u: 0, v: 0, e: 0, m: 0 };
+             });
+             //console.log(mediumData.value());
+             
+             var mediumNodes = [];
+             mediumNodes.push({ name: "Total Releases" }); //0
+             mediumNodes.push({ name: "Air" }); //1
+             mediumNodes.push({ name: "Water" }); //2
+             mediumNodes.push({ name: "Underground" });  //3
+             mediumNodes.push({ name: "Land fills" });  //4
+             mediumNodes.push({ name: "Land treatment" }); //5
+             mediumNodes.push({ name: "Surface" }); //6
+             mediumNodes.push({ name: "Recovery" }); //7
+             mediumNodes.push({ name: "Recycle" }); //8
+             mediumNodes.push({ name: "Treatment" }); //9
+             
+             var mediumLinks = [];
+             mediumLinks.push({ source: 1, target: 0, value: mediumData.value().a===0 ? 0.1 : mediumData.value().a }); // total <- air
+             mediumLinks.push({ source: 2, target: 0, value: mediumData.value().w===0 ? 0.1 : mediumData.value().w }); // total <- water
+             mediumLinks.push({ source: 3, target: 0, value: mediumData.value().g===0 ? 0.1 : mediumData.value().g }); // total <- underground
+             mediumLinks.push({ source: 4, target: 0, value: mediumData.value().f===0 ? 0.1 : mediumData.value().f }); // total <-
+             mediumLinks.push({ source: 5, target: 0, value: mediumData.value().r===0 ? 0.1 : mediumData.value().r }); // total ->
+             mediumLinks.push({ source: 6, target: 0, value: mediumData.value().u===0 ? 0.1 : mediumData.value().u }); // total ->
+             mediumLinks.push({ source: 0, target: 7, value: mediumData.value().v===0 ? 0.1 : mediumData.value().v }); // total ->
+             mediumLinks.push({ source: 0, target: 8, value: mediumData.value().e===0 ? 0.1 : mediumData.value().e }); // total ->
+             mediumLinks.push({ source: 0, target: 9, value: mediumData.value().m===0 ? 0.1 : mediumData.value().m }); // total ->
+            
+            return {nodes:mediumNodes, links:mediumLinks};
+        }
+        
+        function visualMap() {
+            
+            // clear stale data
+            d3.select("#leftBar").selectAll("svg").remove();
+            
+            var width = 350;
+            var height = 225;
+            
+            var data = carcinogenData();
+            var svg = d3.select("#leftBar").append('svg:svg')
+                .attr("width", width)
+                .attr("height", height)
+            
+            var g = svg.append('svg:g')
+            .attr("class", "RdYlGn")
+            .attr("transform", "scale(0.45) translate(50, -50)");
+            //.attr('transform', 'scale(0.5) translate(-27, -134)');
+            //.attr('transform', 'scale(0.5) translate(-05, -125)');
+
+            var path = g.selectAll("path")
+            .data(data)
+            .enter().append("path")
+            .attr('id', function(d,i){
+                  return lkpSt[d.key-1].desc;
+                  })
+            .attr("class", function (d,i) {
+                  //console.log(i + "." + d.value.perc);
+                  //return "q" + Math.min(8, ~ ~(d.value.perc * 9 / 12)) + "-9";
+                  return "q" + Math.min(8, ~ ~(d.value.tots * 9 / 120000000)) + "-9";
+                  })
+            .attr('d', function(d,i){
+                  return lkpSt[d.key-1].locus;
+                  })
+            .style("stroke", d3.rgb(255).darker(1))
+            .style("stroke-width", "1")
+            .style("opacity", "1")
+            .on("mouseover", function(d,i){
+                d3.select(this)
+                //.style("stroke", d3.rgb(255).darker(7))
+                .style("stroke", function(d){
+                       return d3.rgb(d3.select(this).style("stroke")).darker(7);
+                       })
+                .style("stroke-width", "5")
+                .style("opacity", ".5");
+                })
+            .on("mouseout", function(d,i){
+                d3.select(this)
+                .style("stroke", function(d){
+                       return d3.rgb(d3.select(this).style("stroke")).brighter(7);
+                       })
+                //.style("stroke", d3.rgb(255).darker(0))
+                .style("stroke-width", "1")
+                .style("opacity", "1");
+                })
+            .on("click", function click(d){
+                filterData(d.key,null,null,null);})
+
+            .append("svg:title")
+                .text(function(d,i){
+                  return "State:" + lkpSt[d.key-1].desc + "\nTotal Releases:" + humanReadable(d.value.tots) +
+                  "\nCarcinogen Releases:" + humanReadable(d.value.carc) +
+                  "\nCarcinogen percent:" + formatPerc(d.value.carc/d.value.tots) ;});
+
+            //
+            var th = "State of Toxins";
+            var tsize = calcDummyTitle(th, "heading");
+            
+            svg.append("svg:text")
+                .attr("x", width/2)
+                .attr("y", tsize.height/2 + 15)
+                .attr("class", "heading")
+                .text(th)
+            .on("click", function(d){
+                showHelp(2);
+                });
+            /*
+            th = "Filter: None";
+            tsize = calcDummyTitle(th, "filterText");
+            svg.append("svg:text")
+                .attr("x", width-tsize.width)
+                .attr("y", height)
+                .attr("class", "filterText")
+            .text("Filter:None");
+            */
+            
+        }
+ 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    function visualSankey() {
+        
+        // clear stale data
+        d3.select("#sub-footer").selectAll("svg").remove();
+        
+        var margin = {top: 10, right: 1, bottom: 1, left: 50},
+            width = /*960*/700 - margin.left - margin.right,
+            height = /*500*/150 - margin.top - margin.bottom;
+
+        //var formatNumber = d3.format(",.0f"),
+        //format = function (d) { return formatNumber(d) + "M"; };
+        //color = d3.scale.category20();
+
+        var svg = d3.select("#sub-footer").append("svg")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+        .append("g")
+            .attr("class", "RdYlGn")
+            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+        var sankey = d3.sankey()
+            .nodeWidth(15)
+            .nodePadding(25)
+            .size([width, height-5]);
+
+        var path = sankey.link();
+
+        var m = mediumData();
+        sankey
+            .nodes(m.nodes)
+            .links(m.links)
+            .layout(32);
+
+        var link = svg.append("g").selectAll(".link")
+            .data(m.links)
+        .enter().append("path")
+            .attr("class", "link")
+            .attr("d", path)
+            .style("stroke-width", function (d) {
+                   return Math.max(1, d.dy); })
+        .on("mousedown", function (d, i ){
+            var m = 1;
+            if(d.source.name==="Air") m=1;
+            if(d.source.name==="Water") m=2;
+            if(d.source.name==="Underground") m=3;
+            if(d.source.name==="Land fills") m=4;
+            if(d.source.name==="Land treatment") m=5;
+            if(d.source.name==="Surface") m=6;
+            if(d.target.name==="Recovery") m=7;
+            if(d.target.name==="Recycle") m=8;
+            if(d.target.name==="Treatment") m=9;
+      
+            
+            filterData(null, null, null, m);
+            
+            })
+        .sort(function (a, b) {
+                   return b.dy - a.dy; });
+
+        link.append("title")
+            .text(function (d) {
+            //return d.source.name + " ? " + d.target.name + "\n" + format(d.value); });
+            return d.source.name + ":" + d.target.name + "\n" + humanReadable(d.value); });
+            var node = svg.append("g").selectAll(".node")
+        .data(m.nodes)
+            .enter().append("g")
+            .attr("class", "node")
+            .attr("transform", function (d) {
+                  return "translate(" + d.x + "," + d.y + ")";
+                  })
+        .call(d3.behavior.drag()
+            .origin(function (d) { return d; })
+    
+        .on("dragstart", function () { this.parentNode.appendChild(this); })
+        .on("drag", dragmove));
+    
+        node.append("rect")
+            .attr("height", function (d) {
+                  return d.dy; })
+            .attr("width", sankey.nodeWidth())
+            //.style("fill", function (d) {
+            //      return d.color = color(d.name.replace(/ .*/, "")); })
+            .attr("class", function (d) {
+                  return "q" + Math.min(8, ~ ~(d.value / 120000)) + "-9";
+                  })
+            .style("stroke", function (d) {
+                    return d3.rgb(d.color).darker(2);
+                   })
+            .append("title")
+            .text(function (d) {
+                    return d.name + "\n" + humanReadable(d.value);
+                  });
+
+        node.append("text")
+            .attr("x", -6)
+            .attr("y", function(d) { return d.dy / 2; })
+            .attr("dy", ".35em")
+            .attr("text-anchor", "end")
+            .attr("transform", null)
+            .text(function (d) {
+                    return d.name;
+                  })
+            .filter(function (d) {
+                    return d.x < width / 2;
+                  })
+            .attr("x", 6 + sankey.nodeWidth())
+            .attr("text-anchor", "start");
+
+        //
+        var th = "Medium of Release";
+        var tsize = calcDummyTitle(th, "heading");
+        
+        svg.append("svg:text")
+            .attr("x", width/2)
+            .attr("y", tsize.height/2)
+            .attr("class", "heading")
+            .style("text-anchor", "middle")
+            .text(th)
+        .on("click", function(d){
+            showHelp(1);
+            });
+
+        
+        
+        
+        function dragmove(d) {
+                d3.select(this).attr("transform",
+                                     "translate(" + (
+                                                     d.x = Math.max(0, Math.min(width - d.dx, d3.event.x))
+                                                     ) + "," + (
+                                                                d.y = Math.max(0, Math.min(height - d.dy, d3.event.y))
+                                                                ) + ")");
+                sankey.relayout();
+                link.attr("d", path);
+            }
+
+
+        }
+        
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+        function visualSunburst() {
+         
+            var w = 300,//960,
+            h = 225, //700,
+            r = Math.min(w, h) / 2,
+            x = d3.scale.linear().range([0, 2 * Math.PI]),
+            y = d3.scale.sqrt().range([0, r]);
+            //color = d3.scale.category20c();
+            
+            // clear stale data
+            d3.select("#rightBar").selectAll("svg").remove();
+            
+            var svg = d3.select("#rightBar").append("svg:svg")
+                .attr("width", w)
+                .attr("height", h);
+            
+            var th = "Toxins at Facilities";
+            var tsize = calcDummyTitle(th, "heading");
+             
+            var gt = svg.append("svg:g")
+             .append("svg:text")
+             .attr("x", w/2 - 15)
+             .attr("y", tsize.height/2 + 15)
+             .attr("class", "heading")
+             .text(th)
+            .on("click", function(d){
+                showHelp(3);
+                });
+
+            var g = svg.append("svg:g")
+                .attr("class", "RdYlGn")
+                .attr("transform", "scale(0.8) translate(" + 160 + "," + 160 + ")");
+            
+            var partition = d3.layout.partition()
+                .value(function(d) { return d.size; });
+            
+            var arc = d3.svg.arc()
+                .startAngle(function(d) { return Math.max(0, Math.min(2 * Math.PI, x(d.x))); })
+                .endAngle(function(d) { return Math.max(0, Math.min(2 * Math.PI, x(d.x + d.dx))); })
+                .innerRadius(function(d) { return Math.max(0, y(d.y)); })
+                .outerRadius(function(d) { return Math.max(0, y(d.y + d.dy)); });
+
+            //var path = vis.data([chemicalData()]).selectAll("path")
+            var path = g.selectAll("path")
+                .data(partition.nodes(chemicalData()))
+                .enter().append("path")
+                .attr("d", arc)
+                .attr("class", function (d) {
+                      return "q" + Math.min(8, ~ ~(d.value / 1200000000)) + "-9";
+                      //if(d.carc)
+                      //  return "q" + Math.min(8, ~ ~((d.carc * 100/d.size) * 9 / 12)) + "-9";
+                      //else
+                      //  return "q8-9";
+                      
+                      })
+            .on("mouseover", function(d,i){
+                d3.select(this)
+                .style("stroke", function(d){
+                       return d3.rgb(d3.select(this).style("stroke")).darker(7);
+                       })
+                .style("stroke-width", "2")
+                .style("opacity", ".5");
+                })
+            .on("mouseout", function(d,i){
+                d3.select(this)
+                .style("stroke", function(d){
+                       return d3.rgb(d3.select(this).style("stroke")).brighter(7);
+                       })
+                .style("stroke-width", "1")
+                .style("opacity", "1");
+                })
+            .on("click", click)
+            
+            .append("svg:title")
+                .text(function(d,i){
+                          if(d.name===0)// if the chemical id returns 0 we dont which one
+                            return "Unknown";
+                          if(d.depth===0)
+                            return d.name + "\n" + humanReadable(d.value);
+                          if(d.depth===1)
+                            return lkpChm[d.name-1].desc + "\nTotal releases:" + humanReadable(d.value) +
+                                    "\nCarcinogen percent:" + formatPerc(d.carc * 100/d.size);
+                          if(d.depth===2)
+                            return lkpFcy[d.name-1].desc + "\nTotal releases:" + humanReadable(d.value) +
+                                    "\nCarcinogen percent:" + formatPerc(d.carc * 100/d.size);
+            });
+        
+            
+            
+            function click(d){
+                path.transition().duration(750).attrTween("d", arcTween);
+                if(d.depth===1){filterData(null,d.name,null,null);}
+                if(d.depth===2){filterData(null,null,d.name,null);}
+            }
+        
+            function arcTween(d) {
+                var xd = d3.interpolate(x.domain(), [d.x, d.x + d.dx]),
+                yd = d3.interpolate(y.domain(), [d.y, 1]),
+                yr = d3.interpolate(y.range(), [d.y ? 20 : 0, r]);
+                return function(d, i) {
+                        return i
+                        ? function(t) { return arc(d); }
+                        : function(t) { x.domain(xd(t)); y.domain(yd(t)).range(yr(t)); return arc(d); };
+                    };
+            }
+            
+        }
+////////////////////////////////////////////////////
+/*        function visualSunburst2() {
+            var w = 300,//960,
+            h = 225,//500,
+            r = Math.min(w, h) / 2,//230,
+            color = d3.scale.category20c();
+            
+            var partition = d3.layout.partition()
+            .size([2 * Math.PI, r])
+            .value(function(d) { return d.size; });
+            
+            var arc = d3.svg.arc()
+            .startAngle(function(d) { return d.x; })
+            .endAngle(function(d) { return d.x + d.dx; })
+            .innerRadius(function(d) { return d.y; })
+            .outerRadius(function(d) { return d.y + d.dy; });
+            
+            var svg = d3.select("#rightBar").append("svg:svg")
+            .attr("width", w)
+            .attr("height", h)
+            .append("svg:g")
+            .attr("transform", "translate(" + w / 2 + "," + h / 2 + ")");
+            
+            //d3.json("readme.json", function(root) {
+            var root = chemicalData();
+                    path = svg.data([root]).selectAll("path")
+                    .data(partition.nodes)
+                    .enter().append("svg:path")
+                    .attr("d", arc)
+                    .style("fill", function(d) { return color((d.children ? d : d.parent).name); })
+                    .on("click", magnify)
+                    .each(stash);
+            //        });
+            
+            // Distort the specified node to 80% of its parent.
+            function magnify(node) {
+                if (parent = node.parent) {
+                    var parent,
+                    x = parent.x,
+                    k = .8;
+                    parent.children.forEach(function(sibling) {
+                                            x += reposition(sibling, x, sibling === node
+                                                            ? parent.dx * k / node.value
+                                                            : parent.dx * (1 - k) / (parent.value - node.value));
+                                            });
+                } else {
+                    reposition(node, 0, node.dx / node.value);
+                }
+                
+                path.transition()
+                .duration(750)
+                .attrTween("d", arcTween);
+            }
+            
+            // Recursively reposition the node at position x with scale k.
+            function reposition(node, x, k) {
+                node.x = x;
+                if (node.children && (n = node.children.length)) {
+                    var i = -1, n;
+                    while (++i < n) x += reposition(node.children[i], x, k);
+                }
+                return node.dx = node.value * k;
+            }
+            
+            // Stash the old values for transition.
+            function stash(d) {
+                d.x0 = d.x;
+                d.dx0 = d.dx;
+            }
+            
+            // Interpolate the arcs in data space.
+            function arcTween(a) {
+                var i = d3.interpolate({x: a.x0, dx: a.dx0}, a);
+                return function(t) {
+                    var b = i(t);
+                    a.x0 = b.x;
+                    a.dx0 = b.dx;
+                    return arc(b);
+                };
+            }
+
+        } */
+////////////////////////////////////////////////////
+        function visualCirc(){
+            
+            d3.json("./data/lkpYr.json", function (lkpYr) {
+                    
+            var w = 750;
+            var h = 75;
+            var barPadding = 1;
+ 
+            // clear stale data
+            d3.select("#footer").selectAll("svg").remove();
+            
+            //Create scale functions
+            var horz = d3.scale.linear()
+            .domain([0, d3.max(lkpYr, function (d) { return d.y; })])
+            .range([0, w]);
+            
+            
+            //Create SVG element
+            var svg = d3.select("#footer")
+            .append("svg:svg")
+            .attr("width", w)
+            .attr("height", h)
+            .append("svg:g")
+            .attr("class", "RdYlGn");
+            
+            var node = svg.selectAll("circle")
+            .data(lkpYr)
+            .enter()
+              .append("svg:circle")
+            .attr("cx", function(d,i){
+                  return Math.round(horz(i)) + Math.round((w / lkpYr.length - barPadding))/2;
+                  })
+            .attr("r", Math.round((w / lkpYr.length - barPadding))/2)
+            .attr("cy", Math.round((w / lkpYr.length - barPadding))/2 + 40)
+            .attr("class", function (d, i) {
+                  return "q" + Math.min(8, ~ ~(d.gtotal * 9 / 12000000000)) + "-9";
+                  //return "q" + color(d.gtotal);
+                  })
+            .on("mouseover", function(d,i){
+                d3.select(this)
+                //.style("stroke", d3.rgb(255).darker(7))
+                .style("stroke", function(d){
+                       return d3.rgb(d3.select(this).style("stroke")).darker(7);
+                       })
+                .style("stroke-width", "1")
+                .style("opacity", ".2");
+                })
+            .on("mouseout", function(d,i){
+                d3.select(this)
+                .style("stroke", function(d){
+                       return d3.rgb(d3.select(this).style("stroke")).brighter(7);
+                       })
+                //.style("stroke", d3.rgb(255).darker(0))
+                .style("stroke-width", "0")
+                .style("opacity", "1");
+                })
+            .on("click", function click(d, i){
+                var y = i + 1987;
+                $("#yearFilterText").text("Current Year:" + y);
+                var str = "" + d.y;
+                var pad = "00";
+                var arg = "./data/" + pad.substring(0, pad.length - str.length) + str + ".json";
+                main(arg);
+                })
+            
+            .append("svg:title")
+                .text(function(d, i){
+                  var y = i + 1987;
+                  return "Year:" + y + "\nTotal Releases:" + humanReadable(d.gtotal) +
+                      "\nCarcinogen Releases:" + humanReadable(d.ctotal) +
+                      "\nCarcinogen Percent:" + formatPerc(d.ctotal/d.gtotal);
+                      });
+            
+            svg.selectAll("g")
+                .data(lkpYr)
+                .enter()
+            .append("svg:text")
+            .attr("dx", function(d,i){
+                  var dx = Math.round(horz(i)) + Math.round((w / lkpYr.length - barPadding))/2;
+                  return dx - 7;
+                  })
+            .attr("dy", function(d,i){
+                  var dy = Math.round((w / lkpYr.length - barPadding))/2 + 40;
+                  return dy + 5;
+                  })
+            .text(function(d, i){
+                  return (i + 1987).toString().substring(2,4);
+                  });
+            
+            //
+            var th = "Over the Years";
+            var tsize = calcDummyTitle(th, "heading");
+            svg.selectAll("svg")
+                .data([th])
+                .enter()
+                .append("svg:text")
+                    .attr("x", w/2)
+                    .attr("y", tsize.height/2 + 15)
+                    .attr("class", "heading")
+                    .style("font-size", "15pt") // specify explicitly even though css has logic
+                    .style("text-anchor", "middle")
+                .text(th)
+            .on("click", function(d){
+                showHelp();
+                })
+            .on("mouseover", function(d){
+                d3.select(this)
+                .style("text-decoration", "underline");
+                });
+            
+            
+                    });
+
+            
+            
+        }
+////////////////////////////////////////////////////
+        function filterData(st, chm, fcy, med){
+            showProgress();
+            if(chm!=null){
+                $("#sunburstFilterText").text(lkpChm[chm-1].desc);
+                $("#sunburstFilterLink").attr("href", "javascript:resetFilter(null,1,null,null)")
+                chemical.filterExact(chm);
+                visualMap();
+                visualSankey();
+            }
+            if(fcy!=null){
+                $("#sunburstFilterText").text(lkpFcy[fcy-1].desc);
+                $("#sunburstFilterLink").attr("href", "javascript:resetFilter(null,null,1,null)")
+                facility.filterExact(fcy);
+                visualMap();
+                visualSankey();
+            }
+            if(st!=null){
+                $("#mapFilterText").text(lkpSt[st-1].desc);
+                state.filterExact(st);
+                visualSunburst();
+                visualSankey();
+            }
+            if(med!=null){
+                if(med===1){air.filter([1, Infinity]);$("#mediumFilterText").text("Air");};
+                if(med===2){water.filter([1, Infinity]);$("#mediumFilterText").text("Water");};
+                if(med===3){uground.filter([1, Infinity]);$("#mediumFilterText").text("Underground");};
+                if(med===4){landf.filter([1, Infinity]);$("#mediumFilterText").text("Landfill");};
+                if(med===5){landt.filter([1, Infinity]);$("#mediumFilterText").text("Land treatment");};
+                if(med===6){surf.filter([1, Infinity]);$("#mediumFilterText").text("Surface");};
+                if(med===7){recvr.filter([1, Infinity]);$("#mediumFilterText").text("Recovery");};
+                if(med===8){recyl.filter([1, Infinity]);$("#mediumFilterText").text("Recycled");};
+                if(med===9){trtmt.filter([1, Infinity]);$("#mediumFilterText").text("Treatment");};
+                visualMap();
+                visualSunburst();
+            
+            }
+            hideProgress();
+        }
+////////////////////////////////////////////////////////
+        function resetFilter(st, chm, fcy, med){
+            var noneText = "None";
+            
+            if(chm!=null){
+                $("#sunburstFilterText").text(noneText);
+                chemical.filter(null);
+                visualMap();
+                visualSankey();
+            }
+            if(fcy!=null){
+                $("#sunburstFilterText").text(noneText);
+                facility.filter(null);
+                visualMap();
+                visualSankey();
+            }
+            
+            if(st!=null){
+                $("#mapFilterText").text(noneText);
+                state.filter(null);
+                visualSunburst();
+                visualSankey();
+            }
+            if(med!=null){
+                var src = $("#mediumFilterText").text();
+                if(src==="Air") {air.filter(null);$("#mediumFilterText").text(noneText);};
+                if(src==="Water") {water.filter(null);$("#mediumFilterText").text(noneText);};
+                if(src==="Underground") {uground.filter(null);$("#mediumFilterText").text(noneText);};
+                if(src==="Land fills") {landf.filter(null);$("#mediumFilterText").text(noneText);};
+                if(src==="Land treatment") {landt.filter(null);$("#mediumFilterText").text(noneText);};
+                if(src==="Surface") {surf.filter(null);$("#mediumFilterText").text(noneText);};
+                if(src==="Recovery") {recvr.filter(null);$("#mediumFilterText").text(noneText);};
+                if(src==="Recycle") {recyl.filter(null);$("#mediumFilterText").text(noneText);};
+                if(src==="Treatment") {trtmt.filter(null);$("#mediumFilterText").text(noneText);};
+                visualMap();
+                visualSunburst();
+                
+            }
+        }
+    
+        
+    </script>
+</body>
+</html>
