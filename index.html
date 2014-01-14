@@ -2,13 +2,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
     
-    <script type="text/javascript" src="./lib/d3.v3.js"></script>
+    <script type="text/javascript" src="./lib/d3.v3.min.js"></script>
     <script type="text/javascript" src="./lib/topojson.js"></script>
     <script type="text/javascript" src="./lib/jquery.js"></script>
     <script type="text/javascript" src="./lib/jquery-ui.js"></script>
     <script type="text/javascript" src="./lib/crossfilter.v1.js"></script>
     <script type="text/javascript" src="./lib/sankey.js"></script>
-    <script type="text/javascript" src="./lib/select2.js"></script>
+    <script type="text/javascript" src="./lib/select2.min.js"></script>
     
     <link type="text/css" rel="stylesheet" href="./style/select2.css" />
     <link type="text/css" rel="stylesheet" href="./style/jquery-ui.css" />
@@ -505,7 +505,7 @@
         visualCirc();
         
         // --------------------------------------------------------------------------------------------------------
-        var toxin, all, state, states, chemical, chemicals, facility, facilities;
+        var toxin, all, state, staten, chemical, chemicals, facility, facilities;
         var air, water, landf, uground, landt, surf, recvr, recyl, trtmt;
         function main(argv) {
 
@@ -515,7 +515,7 @@
             if(argv===null)
                 argv = "./data/01.json";
             
-            toxin = all = state = states = chemical = chemicals = facility = facilities = null;
+            toxin = all = state = staten = chemical = chemicals = facility = facilities = null;
             air = water = landf = uground = landt = surf = recvr = recyl = trtmt = null;
 
             d3.json(argv, function (err, toxins) {
@@ -526,7 +526,7 @@
                 toxin = crossfilter(toxins),
                     all = toxin.groupAll(),
                     state = toxin.dimension(function (d) { return d.s; }),
-                    states = state.group(),
+                    staten = state.group(),
                     chemical = toxin.dimension(function (d) { return d.h; }),
                     chemicals = chemical.group(),
                     facility = toxin.dimension(function (d) { return d.y; }),
@@ -551,7 +551,7 @@
 
         function stateData(){
             // get carcinogens
-            return states.reduce(
+            return staten.reduce(
                                      function ra(p, v) {
                                      if(v.c === 1) { p.carc = p.carc + v.t; }
                                      p.t = p.t + v.t;
