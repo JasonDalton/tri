@@ -420,7 +420,7 @@
                             main(null);
                         });
                 
-                d3.json("./data/lkpCounties.json", function (err, st) {
+                d3.json("./data/lkpCounties.json", function (st) {
                         lkpSt = st;
                         if (!--remaining)
                             initSearchBox();
