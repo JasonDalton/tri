@@ -2,15 +2,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
     
-    <script type="text/javascript" src="./lib/d3.v3.min.js"></script>
+    <script type="text/javascript" src="./lib/d3.v3.js"></script>
     <script type="text/javascript" src="./lib/topojson.js"></script>
     <script type="text/javascript" src="./lib/jquery.js"></script>
     <script type="text/javascript" src="./lib/jquery-ui.js"></script>
     <script type="text/javascript" src="./lib/crossfilter.v1.js"></script>
     <script type="text/javascript" src="./lib/sankey.js"></script>
-    <script type="text/javascript" src="./lib/select2.min.js"></script>
     
-    <link type="text/css" rel="stylesheet" href="./style/select2.css" />
     <link type="text/css" rel="stylesheet" href="./style/jquery-ui.css" />
     <title>A study in toxic releases</title>
     <style type="text/css">
@@ -247,6 +245,8 @@
         .GnYlRd .q1-11{fill:rgb(26,152,80)}
         .GnYlRd .q0-11{fill:rgb(0,104,55)}
         
+        /* drop down */
+
         </style>
     <h2 align="center">A study in toxic releases</h2>
 </head>
@@ -264,8 +264,9 @@
         <div id="footer"><r id="captionResetAllFilters"><a href="javascript:resetAllFilters(true)">Reset All Filters</a></r><y id="yearFilterText">Current Year:1987</y></div>
         
         <!-- -->
-        <div id="search-header">
-            <input type="hidden" id="drpSearch" style="width:760px" tabindex="-1" class="select2-offscreen">
+        <div id="search">
+            <label for="tags">Search for State, Chemicals or Facilities (Type three letters ...) </label>
+            <input id="tags" style="width:340px">
         </div>
         
         <!-- -->
@@ -442,39 +443,28 @@
         function initSearchBox(){
 
             var lkpSrch = [];
-
-            lkpSt.forEach(function(d){
-                           lkpSrch.push({id:d.f, desc:d.c + "," + d.s, typ:"s"});
-                           });
-            lkpChm.forEach(function(d){
-                           lkpSrch.push({id:d.id, desc:d.desc, typ:"c"});
-                           });
-            lkpFcy.forEach(function(d){
-                           lkpSrch.push({id:d.id, desc:d.desc, typ:"f"});
-                           });
-                           
+            lkpSt.forEach(function(d){lkpSrch.push({value:d.f, label:d.c + "," + d.s, typ:"s"});});
+            lkpChm.forEach(function(d){lkpSrch.push({value:d.id, label:d.desc, typ:"c"});});
+            lkpFcy.forEach(function(d){lkpSrch.push({value:d.id, label:d.desc, typ:"f"});});
             
-            var srchBox = $("#drpSearch");
-            $(srchBox).select2({
-                               data:{ results: lkpSrch, text: 'desc' },
-                               minimumInputLength: 3,
-                               multiple:false,
-                               formatSelection: function format(d){
-                                return d.desc;},
-                               formatResult: function format(d) {
-                               if(d.typ === "c") {return d.desc + "-- Chemical";}
-                               if(d.typ === "f") {return d.desc + "-- Facility";}
-                               if(d.typ === "s") {return d.desc + "-- State";}
-                                },
-                               placeholder: "Search for State, Chemicals or Facilities ...",
-                               allowClear: true
-                               });
-            $(srchBox).on("select2-selecting", function(d){
-                if(d.object.typ === "c") {filterData(null, d.object.id, null, null);}
-                if(d.object.typ === "s") {filterData(d.object.id, null, null, null);}
-                if(d.object.typ === "f") {filterData(null, null, d.object.id, null);}
-            });
+            $("#tags").autocomplete({
+                                        delay: 25,
+                                        minLength: 3,
+                                        source: lkpSrch,
+                                        focus: function(event, ui) {
+                                            $('#tags').val(ui.item.label);
+                                            event.preventDefault();
+                                        },
+                                        select: function(event, ui) {
+                                            $('#tags').val(ui.item.label);
 
+                                            if(ui.item.typ === "c") {filterData(null, ui.item.value, null, null);}
+                                            if(ui.item.typ === "s") {filterData(ui.item.value, null, null, null);}
+                                            if(ui.item.typ === "f") {filterData(null, null, ui.item.value, null);}
+                                            return false;
+                                    }
+                                    
+                                    });
         }
         
         var prg = false;
