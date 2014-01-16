@@ -403,13 +403,13 @@
             if(lkpSt === null){
             
                 var remaining = 4;
-                //showProgress();
+                showProgress();
                 
                 d3.json("./data/lkpFcy.json", function (fcy) {
                        lkpFcy = fcy;
                        if (!--remaining)
                             initSearchBox();
-                            //hideProgress();
+                            hideProgress();
                             main(null);
                        });
                 
@@ -417,7 +417,7 @@
                         lkpChm = chm;
                         if (!--remaining)
                             initSearchBox();
-                            //hideProgress();
+                            hideProgress();
                             main(null);
                         });
                 
@@ -425,7 +425,7 @@
                         lkpSt = st;
                         if (!--remaining)
                             initSearchBox();
-                            //hideProgress();
+                            hideProgress();
                             main(null);
                         });
 
@@ -434,7 +434,7 @@
                         lkpUS = us;
                         if (!--remaining)
                             initSearchBox();
-                            //hideProgress();
+                            hideProgress();
                             main(null);
                         });
             }
@@ -499,7 +499,7 @@
         var air, water, landf, uground, landt, surf, recvr, recyl, trtmt;
         function main(argv) {
 
-            //showProgress();
+            showProgress();
             resetAllFilters(false);
             
             if(argv===null)
@@ -535,7 +535,7 @@
                     visualMap();
                     visualSunburst();
                     
-                //hideProgress();
+                hideProgress();
             });
         }
 
